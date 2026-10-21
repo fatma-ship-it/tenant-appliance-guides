@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Appliance Guides</title>
+<meta name="description" content="How to use, care for and troubleshoot the appliances in your apartment.">
+<meta name="robots" content="noindex">
+<meta name="color-scheme" content="light">
+<style>
+:root{--bg:#f6f5f2;--card:#fff;--ink:#1d2329;--muted:#5d6670;--line:#e2e0db;--accent:#0f5c78;--accent-ink:#fff;--soft:#e8f1f4;--warn:#9a2b1d;--warn-bg:#fdf0ed}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+a{color:var(--accent)}
+.wrap{max-width:760px;margin:0 auto;padding:0 16px}
+header{background:var(--accent);color:var(--accent-ink);padding:22px 0 20px}
+header h1{margin:0;font-size:1.5rem;line-height:1.2}
+header p{margin:6px 0 0;opacity:.9;font-size:.95rem}
+main{padding:18px 0 40px}
+.hint{color:var(--muted);font-size:.95rem;margin:0 0 14px}
+.appl{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin:0 0 14px}
+.appl-head{display:flex;gap:12px;align-items:center;margin-bottom:12px}
+.ico{flex:none;width:44px;height:44px;border-radius:10px;background:var(--soft);display:grid;place-items:center;color:var(--accent)}
+.appl h2{margin:0;font-size:1.15rem;line-height:1.25}
+.appl .sub{margin:2px 0 0;color:var(--muted);font-size:.9rem}
+.btns{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.btn{display:flex;align-items:center;justify-content:center;text-align:center;min-height:48px;padding:8px 6px;border-radius:10px;border:1px solid var(--accent);color:var(--accent);background:#fff;text-decoration:none;font-weight:600;font-size:.92rem;line-height:1.2}
+.btn:active{background:var(--soft)}
+@media (max-width:420px){.btns{grid-template-columns:1fr}.btn{justify-content:flex-start;padding:10px 14px}}
+.back{display:inline-flex;align-items:center;gap:6px;min-height:44px;font-weight:600;text-decoration:none}
+.gtitle{margin:4px 0 2px;font-size:1.35rem;line-height:1.25}
+.gsub{margin:0 0 12px;color:var(--muted);font-size:.92rem}
+.tabs{display:flex;gap:6px;overflow-x:auto;margin:0 0 12px;padding-bottom:2px}
+.tab{flex:none;min-height:44px;padding:10px 12px;border-radius:999px;border:1px solid var(--line);background:#fff;color:var(--ink);text-decoration:none;font-weight:600;font-size:.92rem}
+.tab[aria-current=page]{background:var(--accent);border-color:var(--accent);color:#fff}
+.dl{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:50px;border-radius:12px;background:var(--accent);color:#fff;text-decoration:none;font-weight:700;margin:0 0 14px}
+.page{display:block;background:#fff;border:1px solid var(--line);border-radius:8px;margin:0 0 12px;overflow:hidden}
+.page img{display:block;width:100%;height:auto}
+.zoom{color:var(--muted);font-size:.85rem;margin:-4px 0 12px;text-align:center}
+.stop{background:var(--warn-bg);border:1px solid #f0c9c1;color:var(--warn);border-radius:12px;padding:14px 16px;margin:18px 0 0;font-size:.95rem}
+.stop strong{display:block;margin-bottom:2px}
+footer{color:var(--muted);font-size:.85rem;padding:0 0 30px}
+</style>
+</head>
+<body>
+<header><div class="wrap"><h1>Appliance Guides</h1><p>How to use, care for and fix common problems with the appliances in your apartment.</p></div></header>
+<main class="wrap" id="app"></main>
+<footer class="wrap">Toronto Boutique Apartments</footer>
+<script>
+const DATA=[{"slug": "whirlpool-front-load-washer", "title": "Whirlpool washer", "sub": "Front-load, models WFW9351 / WFW9151", "icon": "washer", "guides": [{"key": "whirlpool-front-load-washer-how-to-use", "label": "How to Use", "pdf": "/files/whirlpool-front-load-washer-how-to-use.pdf", "pages": [{"src": "/pages/whirlpool-front-load-washer-how-to-use-1.jpg", "w": 1870, "h": 1445}], "kb": 738}, {"key": "whirlpool-front-load-washer-care", "label": "Appliance Care", "pdf": "/files/whirlpool-front-load-washer-care.pdf", "pages": [{"src": "/pages/whirlpool-front-load-washer-care-1.jpg", "w": 1870, "h": 1445}], "kb": 601}, {"key": "whirlpool-front-load-washer-troubleshooting", "label": "Troubleshooting", "pdf": "/files/whirlpool-front-load-washer-troubleshooting.pdf", "pages": [{"src": "/pages/whirlpool-front-load-washer-troubleshooting-1.jpg", "w": 1870, "h": 1445}], "kb": 454}]}, {"slug": "frigidaire-dishwasher", "title": "Frigidaire dishwasher", "sub": "", "icon": "dishwasher", "guides": [{"key": "frigidaire-dishwasher-how-to-use", "label": "How to Use", "pdf": "/files/frigidaire-dishwasher-how-to-use.pdf", "pages": [{"src": "/pages/frigidaire-dishwasher-how-to-use-1.jpg", "w": 1870, "h": 1445}], "kb": 431}, {"key": "frigidaire-dishwasher-care", "label": "Appliance Care", "pdf": "/files/frigidaire-dishwasher-care.pdf", "pages": [{"src": "/pages/frigidaire-dishwasher-care-1.jpg", "w": 1870, "h": 1445}], "kb": 655}, {"key": "frigidaire-dishwasher-troubleshooting", "label": "Troubleshooting", "pdf": "/files/frigidaire-dishwasher-troubleshooting.pdf", "pages": [{"src": "/pages/frigidaire-dishwasher-troubleshooting-1.jpg", "w": 1870, "h": 1445}], "kb": 264}]}];
+const UNIT="CN Serene Suite";
+if(UNIT){document.querySelector('header h1').textContent=UNIT+' Appliance Guides';}
+const ICONS={
+washer:'<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="4" y="2.5" width="16" height="19" rx="2"/><circle cx="12" cy="13" r="5"/><path d="M7 6h3M15.5 6h.5"/></svg>',
+dryer:'<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="4" y="2.5" width="16" height="19" rx="2"/><circle cx="12" cy="13" r="5"/><path d="M10 11.5c1 .8 1 2.2 0 3M13 11.5c1 .8 1 2.2 0 3M7 6h3"/></svg>',
+dishwasher:'<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="4" y="2.5" width="16" height="19" rx="2"/><path d="M4 7h16M8 4.8h2M12 11v6M9 13v4M15 13v4"/></svg>'};
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const app=document.getElementById('app');
+function home(){
+  document.title=(UNIT?UNIT+' ':'')+'Appliance Guides';
+  if(!DATA.length){app.innerHTML='<p class="hint">Please use the guide link for your unit from property management.</p>';return;}
+  app.innerHTML='<p class="hint">Find your appliance below and pick a guide. Not sure which model you have? Check the label inside the door or on the back.</p>'+
+  DATA.map(a=>`<section class="appl"><div class="appl-head"><div class="ico">${ICONS[a.icon]||''}</div><div><h2>${esc(a.title)}</h2>${a.sub?`<p class="sub">${esc(a.sub)}</p>`:''}</div></div>
+  <div class="btns">${a.guides.map(g=>`<a class="btn" href="#/${a.slug}/${g.key.slice(a.slug.length+1)}">${esc(g.label)}</a>`).join('')}</div></section>`).join('');
+}
+function guide(a,g){
+  document.title=`${g.label} - ${a.title}`;
+  app.innerHTML=`<a class="back" href="#/">&larr; ${DATA.length>1?'All appliances':'Back'}</a>
+  <h2 class="gtitle">${esc(a.title)}</h2>${a.sub?`<p class="gsub">${esc(a.sub)}</p>`:''}
+  <nav class="tabs">${a.guides.map(x=>`<a class="tab" href="#/${a.slug}/${x.key.slice(a.slug.length+1)}"${x===g?' aria-current="page"':''}>${esc(x.label)}</a>`).join('')}</nav>
+  <a class="dl" href="${g.pdf}" download="${esc(a.title+' - '+g.label)}.pdf"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3v12M7 10l5 5 5-5M4 20h16"/></svg>Download PDF (${g.kb>1024?(g.kb/1024).toFixed(1)+' MB':g.kb+' KB'})</a>
+  <p class="zoom">Tap a page to open it full size and zoom in.</p>
+  ${g.pages.map((p,i)=>`<a class="page" href="${p.src}" target="_blank" rel="noopener"><img src="${p.src}" width="${p.w}" height="${p.h}" loading="${i?'lazy':'eager'}" alt="${esc(g.label)} guide, page ${i+1} of ${g.pages.length}"></a>`).join('')}
+  <div class="stop"><strong>Still not working, or something looks unsafe?</strong>Stop using the appliance and contact property management.</div>`;
+}
+function route(){
+  const m=location.hash.match(/^#\/([^/]+)\/([^/]+)/);
+  const a=m&&DATA.find(x=>x.slug===m[1]);
+  const g=a&&a.guides.find(x=>x.key===a.slug+'-'+m[2]);
+  if(g)guide(a,g);else home();
+  window.scrollTo(0,0);
+}
+addEventListener('hashchange',route);route();
+</script>
+</body>
+</html>
