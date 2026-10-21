@@ -1,0 +1,1 @@
+{"headers":[{"source":"/files/(.*)","headers":[{"key":"Content-Disposition","value":"attachment"}]},{"source":"/(.*)","headers":[{"key":"X-Robots-Tag","value":"noindex"}]}]}
