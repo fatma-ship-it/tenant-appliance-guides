@@ -66,6 +66,20 @@ details.printed summary{min-height:44px;display:flex;align-items:center;font-wei
 .lb img{max-width:100%;height:auto;background:#fff;border-radius:6px}
 .lb button{position:fixed;top:10px;right:10px;width:44px;height:44px;border-radius:50%;border:0;background:#fff;font-size:1.4rem;line-height:1}
 .swipe{color:var(--muted);font-size:.8rem;text-align:center;margin:0 0 10px}
+.ask{background:#fff;border:2px solid var(--accent);border-radius:14px;padding:14px;margin:0 0 16px}
+.ask label{display:block;font-weight:700;margin:0 0 8px;font-size:1.05rem}
+.askrow{display:flex;gap:8px}
+.ask input{flex:1;min-width:0;min-height:48px;border:1px solid var(--line);border-radius:10px;padding:8px 12px;font:inherit;font-size:1rem}
+.ask button{min-height:48px;padding:0 18px;border:0;border-radius:10px;background:var(--accent);color:#fff;font:inherit;font-weight:700}
+.askout{margin-top:10px;font-size:1rem}
+.askout:empty{display:none}
+.ans{background:var(--soft);border-radius:10px;padding:12px 14px;margin:0 0 8px}
+.ans p{margin:0 0 8px}.ans p:last-child,.ans ul:last-child{margin-bottom:0}
+.ans ul{margin:0 0 8px;padding-left:1.2em}
+.hit{border-left:4px solid var(--accent);background:#f8fafb;border-radius:6px;padding:8px 12px;margin:0 0 8px;font-size:.95rem}
+.hit small,.srcs{display:block;color:var(--muted);font-size:.8rem;margin-top:4px}
+.hit mark{background:#fff0a8;color:inherit}
+.asknote{color:var(--warn);font-size:.9rem;margin:6px 0 0}
 footer{color:var(--muted);font-size:.85rem;padding:0 0 30px}
 </style>
 </head>
@@ -90,6 +104,36 @@ function home(){
   DATA.map(a=>`<section class="appl"><div class="appl-head"><div class="ico">${ICONS[a.icon]||''}</div><div><h2>${esc(a.title)}</h2>${a.sub?`<p class="sub">${esc(a.sub)}</p>`:''}</div></div>
   <div class="btns">${a.guides.map(g=>`<a class="btn" href="#/${a.slug}/${g.key.slice(a.slug.length+1)}">${esc(g.label)}</a>`).join('')}</div></section>`).join('');
 }
+function askBox(a){return `<form class="ask" data-appl="${a.slug}"><label for="askq">Ask about a problem</label><div class="askrow"><input id="askq" type="search" maxlength="300" placeholder="e.g. water left at the bottom" autocomplete="off" required><button type="submit">Ask</button></div><div class="askout" aria-live="polite"></div></form>`}
+const KB={};
+const STOP=new Set('a an the is it my i me to of and or on in at for with my our its this that there be are was were do does did not no can cant wont dont doesnt isnt what why how when where which who will would should could have has had get got keep keeps after before from just very still any some'.split(' '));
+const SYN={leak:['leak','water','drip','puddl','flood'],leaking:['leak','water'],drain:['drain','water','pump','standing'],smell:['smell','odor','odour'],odor:['smell','odor','odour'],noise:['noise','noisy','loud','sound','bang','rattl','vibrat'],loud:['noise','loud','sound'],start:['start','power','turn','run'],wet:['wet','damp','drying','rinse'],damp:['wet','damp','drying'],dry:['dry','wet','damp','heat'],hot:['heat','hot','temperatur'],cold:['heat','cold','temperatur'],code:['code','error','display'],error:['code','error','display'],door:['door','lock','latch'],soap:['detergent','suds','soap'],suds:['suds','detergent','foam'],dirty:['clean','dirty','residue','spot'],spots:['spot','residue','film','rinse']};
+function stem(w){w=w.toLowerCase();for(const s of ['ing','ed','es','s']){if(w.length>4&&w.endsWith(s))return w.slice(0,-s.length)}return w}
+function toks(t){return (t.toLowerCase().match(/[a-z0-9]+/g)||[]).filter(w=>w.length>1&&!STOP.has(w)).map(stem)}
+function search(kb,q){
+  const qt=toks(q);let terms=new Map();
+  qt.forEach(t=>{terms.set(t,/\d/.test(t)?3:1.5);(SYN[t]||[]).forEach(x=>{if(!terms.has(stem(x)))terms.set(stem(x),.6)})});
+  const docs=kb.chunks.map(c=>({c,t:toks(c.text)}));const N=docs.length,avg=docs.reduce((s,d)=>s+d.t.length,0)/N;
+  const df={};terms.forEach((w,t)=>{df[t]=docs.filter(d=>d.t.some(x=>x.startsWith(t))).length});
+  return docs.map(d=>{let sc=0;terms.forEach((w,t)=>{const f=d.t.filter(x=>x.startsWith(t)).length;if(!f)return;const idf=Math.log(1+(N-df[t]+.5)/(df[t]+.5));sc+=w*idf*f*2.2/(f+1.2*(.25+.75*d.t.length/avg))});
+    if(/guide$/.test(d.c.src)&&/Troubleshooting/.test(d.c.src))sc*=1.15;return{c:d.c,sc}}).filter(x=>x.sc>0).sort((x,y)=>y.sc-x.sc).slice(0,3).map(x=>x.c);
+}
+function hl(text,q){let h=esc(text);toks(q).filter(t=>t.length>2).forEach(t=>{h=h.replace(new RegExp('\\b('+t.replace(/[^a-z0-9]/g,'')+'[a-z]*)','gi'),'<mark>$1</mark>')});return h}
+function mdish(t){const lines=esc(t).replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').split(/\n+/);let o='',inl=false;lines.forEach(l=>{const m=l.match(/^\s*(?:[-•*]|\d+\.)\s+(.*)/);if(m){if(!inl){o+='<ul>';inl=true}o+='<li>'+m[1]+'</li>'}else{if(inl){o+='</ul>';inl=false}if(l.trim())o+='<p>'+l+'</p>'}});if(inl)o+='</ul>';return o}
+const NOTE='<p class="asknote">Still not working, or something looks unsafe? Stop using the appliance and contact property management.</p>';
+async function getKB(slug){if(!KB[slug]){const r=await fetch('/kb/'+slug+'.json');KB[slug]=await r.json()}return KB[slug]}
+app.addEventListener('submit',async e=>{const f=e.target.closest('form.ask');if(!f)return;e.preventDefault();
+  const q=f.querySelector('input').value.trim(),out=f.querySelector('.askout'),slug=f.dataset.appl;if(!q)return;
+  out.innerHTML='<p>Looking in the manual&hellip;</p>';
+  try{const ctl=new AbortController();const tm=setTimeout(()=>ctl.abort(),25000);
+    const r=await fetch('/api/ask',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({appliance:slug,question:q}),signal:ctl.signal});clearTimeout(tm);
+    if(r.ok){const j=await r.json();if(j.answer){out.innerHTML=`<div class="ans">${mdish(j.answer)}</div>${j.sources&&j.sources.length?`<span class="srcs">From: ${esc(j.sources.join(', '))}</span>`:''}${NOTE}`;return}}
+  }catch(err){}
+  try{const kb=await getKB(slug);const hits=search(kb,q);
+    out.innerHTML=hits.length?`<p>Here is what the manual and guides say:</p>${hits.map(h=>`<div class="hit">${h.title?`<strong>${esc(h.title)}:</strong> `:''}${hl(h.text,q)}<small>${esc(h.src)}</small></div>`).join('')}${NOTE}`
+      :`<p>Nothing in the manual matches that. Try other words, for example "won't drain" or the code on the display.</p>${NOTE}`;
+  }catch(err){out.innerHTML='<p>Sorry, search is not available right now.</p>'+NOTE}
+});
 function tabUrl(a,x){return `#/${a.slug}/${x.key.slice(a.slug.length+1)}`}
 function phoneView(g){
   const p=g.phone;
@@ -112,6 +156,7 @@ function guide(a,g){
   app.innerHTML=`<a class="back" href="#/">&larr; ${DATA.length>1?'All appliances':'Back'}</a>
   <h2 class="gtitle">${esc(a.title)}${g.phone?' &middot; '+esc(g.label):''}</h2>${a.sub?`<p class="gsub">${esc(a.sub)}</p>`:''}
   <nav class="tabs">${a.guides.map(x=>`<a class="tab" href="${tabUrl(a,x)}"${x===g?' aria-current="page"':''}>${esc(x.label)}</a>`).join('')}</nav>
+  ${/-troubleshooting$/.test(g.key)?askBox(a):''}
   ${g.phone?`<p class="swipe">Swipe left or right to switch guides. Tap a picture to enlarge it.</p>${phoneView(g)}
     <div class="next">${prev?`<a href="${tabUrl(a,prev)}">&larr; ${esc(prev.label)}</a>`:''}${nxt?`<a href="${tabUrl(a,nxt)}">${esc(nxt.label)} &rarr;</a>`:''}</div>
     ${dl}<details class="printed"><summary>See the printed version</summary>${pages}</details>`
