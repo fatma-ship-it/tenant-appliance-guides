@@ -80,17 +80,54 @@ details.printed summary{min-height:44px;display:flex;align-items:center;font-wei
 .hit small,.srcs{display:block;color:var(--muted);font-size:.8rem;margin-top:4px}
 .hit mark{background:#fff0a8;color:inherit}
 .asknote{color:var(--warn);font-size:.9rem;margin:6px 0 0}
+.langs{display:flex;gap:6px;margin:12px 0 0;flex-wrap:wrap}
+.langs button{min-height:40px;padding:0 14px;border-radius:20px;border:1px solid rgba(255,255,255,.6);background:transparent;color:#fff;font:inherit;font-size:.95rem;font-weight:600}
+.langs button[aria-pressed=true]{background:#fff;color:var(--accent);border-color:#fff}
+.langs:empty{display:none}
+.fallback{background:var(--soft);border-radius:10px;padding:10px 12px;font-size:.92rem;margin:0 0 12px}
 footer{color:var(--muted);font-size:.85rem;padding:0 0 30px}
 </style>
 </head>
 <body>
-<header><div class="wrap"><h1>Appliance Guides</h1><p>How to use, care for and fix common problems with the appliances in your apartment.</p></div></header>
+<header><div class="wrap"><h1 id="h1">Appliance Guides</h1><p id="tag">How to use, care for and fix common problems with the appliances in your apartment.</p><div class="langs" id="langs" role="group" aria-label="Language"></div></div></header>
 <main class="wrap" id="app"></main>
 <footer class="wrap">Toronto Boutique Apartments</footer>
 <script>
 const DATA=[];
 const UNIT=null;
-if(UNIT){document.querySelector('header h1').textContent=UNIT+' Appliance Guides';}
+const T={
+en:{name:'English',title:'Appliance Guides',tag:'How to use, care for and fix common problems with the appliances in your apartment.',
+ hint:'Find your appliance below and pick a guide. Not sure which model you have? Check the label inside the door or on the back.',
+ none:'Please use the guide link for your unit from property management.',ask:'Ask about a problem',ph:'e.g. water left at the bottom',askBtn:'Ask',
+ looking:'Looking in the manual&hellip;',from:'From',found:'Here is what the manual and guides say:',
+ nothing:'Nothing in the manual matches that. Try other words, for example "won\'t drain" or the code on the display.',
+ unavailable:'Sorry, search is not available right now.',note:'Still not working, or something looks unsafe? Stop using the appliance and contact property management.',
+ all:'All appliances',back:'Back',swipe:'Swipe left or right to switch guides. Tap a picture to enlarge it.',dl:'Download PDF',printed:'See the printed version',
+ zoom:'Tap a page to open it full size and zoom in.',stopT:'Still not working, or something looks unsafe?',stopB:'Stop using the appliance and contact property management.',
+ imp:'IMPORTANT',stopBox:'STOP AND CONTACT PROPERTY MANAGEMENT',fallback:'',enlarge:'Enlarge picture',page:'page',of:'of',guideWord:'guide',
+ labels:{'how-to-use':'How to Use','care':'Appliance Care','troubleshooting':'Troubleshooting'}},
+tr:{name:'Türkçe',title:'Cihaz Kılavuzları',tag:'Dairenizdeki cihazların nasıl kullanılacağı, bakımı ve sık görülen sorunların çözümü.',
+ hint:'Aşağıdan cihazınızı bulun ve bir kılavuz seçin. Hangi model olduğundan emin değil misiniz? Kapağın içindeki veya arkadaki etikete bakın.',
+ none:'Lütfen mülk yönetiminin size verdiği daire bağlantısını kullanın.',ask:'Sorununuzu sorun',ph:'örn. altta su kaldı',askBtn:'Sor',
+ looking:'Kılavuzda aranıyor&hellip;',from:'Kaynak',found:'Kılavuzlarda bulunanlar:',
+ nothing:'Kılavuzda bununla eşleşen bir şey bulunamadı. Başka kelimeler deneyin, örneğin "su boşaltmıyor" veya ekrandaki kod.',
+ unavailable:'Üzgünüz, arama şu anda kullanılamıyor.',note:'Hâlâ çalışmıyor mu, ya da güvensiz görünen bir şey mi var? Cihazı kullanmayı bırakın ve mülk yönetimine başvurun.',
+ all:'Tüm cihazlar',back:'Geri',swipe:'Kılavuzlar arasında geçmek için sola veya sağa kaydırın. Büyütmek için resme dokunun.',dl:'PDF indir',printed:'Basılı sürümü görün',
+ zoom:'Tam boyutta açıp yakınlaştırmak için sayfaya dokunun.',stopT:'Hâlâ çalışmıyor mu, ya da güvensiz görünen bir şey mi var?',stopB:'Cihazı kullanmayı bırakın ve mülk yönetimine başvurun.',
+ imp:'ÖNEMLİ',stopBox:'KULLANMAYI BIRAKIN VE MÜLK YÖNETİMİNE BAŞVURUN',fallback:'Bu kılavuz henüz Türkçe değil. İngilizce sürüm gösteriliyor.',enlarge:'Resmi büyüt',page:'sayfa',of:'/',guideWord:'kılavuzu',
+ labels:{'how-to-use':'Nasıl Kullanılır','care':'Cihaz Bakımı','troubleshooting':'Sorun Giderme'}}};
+const LANGS=['en'].concat(DATA.some(a=>a.tr)?['tr']:[]);
+function pickLang(){let q=new URLSearchParams(location.search).get('lang'),s=null;try{s=localStorage.getItem('lang')}catch(e){}
+  const n=(navigator.language||'').slice(0,2);for(const c of [q,s,n])if(c&&LANGS.includes(c))return c;return 'en'}
+let LANG=pickLang();
+const t=()=>T[LANG];
+function setLang(l){LANG=l;try{localStorage.setItem('lang',l)}catch(e){}const u=new URL(location.href);if(l==='en')u.searchParams.delete('lang');else u.searchParams.set('lang',l);history.replaceState(null,'',u);chrome();route()}
+function chrome(){document.documentElement.lang=LANG;document.getElementById('h1').textContent=(UNIT?UNIT+' ':'')+t().title;document.getElementById('tag').textContent=t().tag;
+  document.getElementById('langs').innerHTML=LANGS.length>1?LANGS.map(l=>`<button type="button" data-lang="${l}" aria-pressed="${l===LANG}">${T[l].name}</button>`).join(''):'';}
+document.getElementById('langs').addEventListener('click',e=>{const b=e.target.closest('[data-lang]');if(b&&b.dataset.lang!==LANG)setLang(b.dataset.lang)});
+const AL=a=>(LANG!=='en'&&a[LANG])?{title:a[LANG].title,sub:a[LANG].sub}:{title:a.title,sub:a.sub};
+const kindOf=(a,g)=>g.key.slice(a.slug.length+1);
+function GL(a,g){const x=LANG!=='en'&&g[LANG];return x?{label:x.label,pdf:x.pdf,pages:x.pages,kb:x.kb,phone:x.phone,fb:false}:{label:LANG==='en'?g.label:t().labels[kindOf(a,g)],pdf:g.pdf,pages:g.pages,kb:g.kb,phone:g.phone,fb:LANG!=='en'}}
 const ICONS={
 washer:'<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="4" y="2.5" width="16" height="19" rx="2"/><circle cx="12" cy="13" r="5"/><path d="M7 6h3M15.5 6h.5"/></svg>',
 dryer:'<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="4" y="2.5" width="16" height="19" rx="2"/><circle cx="12" cy="13" r="5"/><path d="M10 11.5c1 .8 1 2.2 0 3M13 11.5c1 .8 1 2.2 0 3M7 6h3"/></svg>',
@@ -98,70 +135,75 @@ dishwasher:'<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const app=document.getElementById('app');
 function home(){
-  document.title=(UNIT?UNIT+' ':'')+'Appliance Guides';
-  if(!DATA.length){app.innerHTML='<p class="hint">Please use the guide link for your unit from property management.</p>';return;}
-  app.innerHTML='<p class="hint">Find your appliance below and pick a guide. Not sure which model you have? Check the label inside the door or on the back.</p>'+
-  DATA.map(a=>`<section class="appl"><div class="appl-head"><div class="ico">${ICONS[a.icon]||''}</div><div><h2>${esc(a.title)}</h2>${a.sub?`<p class="sub">${esc(a.sub)}</p>`:''}</div></div>
-  <div class="btns">${a.guides.map(g=>`<a class="btn" href="#/${a.slug}/${g.key.slice(a.slug.length+1)}">${esc(g.label)}</a>`).join('')}</div></section>`).join('');
+  document.title=(UNIT?UNIT+' ':'')+t().title;
+  if(!DATA.length){app.innerHTML=`<p class="hint">${t().none}</p>`;return;}
+  app.innerHTML=`<p class="hint">${t().hint}</p>`+
+  DATA.map(a=>{const L=AL(a);return `<section class="appl"><div class="appl-head"><div class="ico">${ICONS[a.icon]||''}</div><div><h2>${esc(L.title)}</h2>${L.sub?`<p class="sub">${esc(L.sub)}</p>`:''}</div></div>
+  <div class="btns">${a.guides.map(g=>`<a class="btn" href="#/${a.slug}/${kindOf(a,g)}">${esc(GL(a,g).label)}</a>`).join('')}</div></section>`}).join('');
 }
-function askBox(a){return `<form class="ask" data-appl="${a.slug}"><label for="askq">Ask about a problem</label><div class="askrow"><input id="askq" type="search" maxlength="300" placeholder="e.g. water left at the bottom" autocomplete="off" required><button type="submit">Ask</button></div><div class="askout" aria-live="polite"></div></form>`}
+function askBox(a){return `<form class="ask" data-appl="${a.slug}"><label for="askq">${t().ask}</label><div class="askrow"><input id="askq" type="search" maxlength="300" placeholder="${esc(t().ph)}" autocomplete="off" required><button type="submit">${t().askBtn}</button></div><div class="askout" aria-live="polite"></div></form>`}
 const KB={};
-const STOP=new Set('a an the is it my i me to of and or on in at for with my our its this that there be are was were do does did not no can cant wont dont doesnt isnt what why how when where which who will would should could have has had get got keep keeps after before from just very still any some'.split(' '));
-const SYN={leak:['leak','water','drip','puddl','flood'],leaking:['leak','water'],drain:['drain','water','pump','standing'],smell:['smell','odor','odour'],odor:['smell','odor','odour'],noise:['noise','noisy','loud','sound','bang','rattl','vibrat'],loud:['noise','loud','sound'],start:['start','power','turn','run'],wet:['wet','damp','drying','rinse'],damp:['wet','damp','drying'],dry:['dry','wet','damp','heat'],hot:['heat','hot','temperatur'],cold:['heat','cold','temperatur'],code:['code','error','display'],error:['code','error','display'],door:['door','lock','latch'],soap:['detergent','suds','soap'],suds:['suds','detergent','foam'],dirty:['clean','dirty','residue','spot'],spots:['spot','residue','film','rinse']};
-function stem(w){w=w.toLowerCase();for(const s of ['ing','ed','es','s']){if(w.length>4&&w.endsWith(s))return w.slice(0,-s.length)}return w}
-function toks(t){return (t.toLowerCase().match(/[a-z0-9]+/g)||[]).filter(w=>w.length>1&&!STOP.has(w)).map(stem)}
+const STOPW={en:new Set('a an the is it my i me to of and or on in at for with my our its this that there be are was were do does did not no can cant wont dont doesnt isnt what why how when where which who will would should could have has had get got keep keeps after before from just very still any some'.split(' ')),
+ tr:new Set('ve veya bir bu şu o da de mi mı mu mü ne için ile çok daha gibi ama ya ben benim bana sen var yok nasıl neden niye ne zaman hangi her şey olarak gibi kadar sonra önce hala hâlâ'.split(' '))};
+const SYN={leak:['leak','water','drip','puddl','flood'],leaking:['leak','water'],drain:['drain','water','pump','standing'],smell:['smell','odor','odour'],odor:['smell','odor','odour'],noise:['noise','noisy','loud','sound','bang','rattl','vibrat'],loud:['noise','loud','sound'],start:['start','power','turn','run'],wet:['wet','damp','drying','rinse'],damp:['wet','damp','drying'],dry:['dry','wet','damp','heat'],hot:['heat','hot','temperatur'],cold:['heat','cold','temperatur'],code:['code','error','display'],error:['code','error','display'],door:['door','lock','latch'],soap:['detergent','suds','soap'],suds:['suds','detergent','foam'],dirty:['clean','dirty','residue','spot'],spots:['spot','residue','film','rinse'],
+ 'sızı':['sızı','su','dama','birik'],'boşa':['boşa','pompa','filtr'],'koku':['koku','küf'],'ses':['ses','gürü','takır','vurun','sallan'],'çalış':['çalış','başla','power'],'ısla':['ısla','nemli','kuru'],'nemli':['nemli','ısla','kuru'],'kod':['kod','mesaj','ekran'],'hata':['hata','kod','mesaj','error'],'kapa':['kapa','kilit'],'köpük':['köpük','deter'],'kirli':['temiz','kirli','kalın','leke'],'leke':['leke','kalın','kireç']};
+function stem(w){if(LANG==='tr')return w.length>5?w.slice(0,5):w;for(const s of ['ing','ed','es','s']){if(w.length>4&&w.endsWith(s))return w.slice(0,-s.length)}return w}
+function low(x){return LANG==='tr'?x.toLocaleLowerCase('tr-TR'):x.toLowerCase()}
+function toks(x){return (low(x).match(/[\p{L}\p{N}]+/gu)||[]).filter(w=>w.length>1&&!STOPW[LANG==='tr'?'tr':'en'].has(w)).map(stem)}
 function search(kb,q){
   const qt=toks(q);let terms=new Map();
-  qt.forEach(t=>{terms.set(t,/\d/.test(t)?3:1.5);(SYN[t]||[]).forEach(x=>{if(!terms.has(stem(x)))terms.set(stem(x),.6)})});
-  const docs=kb.chunks.map(c=>({c,t:toks(c.text)}));const N=docs.length,avg=docs.reduce((s,d)=>s+d.t.length,0)/N;
-  const df={};terms.forEach((w,t)=>{df[t]=docs.filter(d=>d.t.some(x=>x.startsWith(t))).length});
-  return docs.map(d=>{let sc=0;terms.forEach((w,t)=>{const f=d.t.filter(x=>x.startsWith(t)).length;if(!f)return;const idf=Math.log(1+(N-df[t]+.5)/(df[t]+.5));sc+=w*idf*f*2.2/(f+1.2*(.25+.75*d.t.length/avg))});
-    if(/guide$/.test(d.c.src)&&/Troubleshooting/.test(d.c.src))sc*=1.15;return{c:d.c,sc}}).filter(x=>x.sc>0).sort((x,y)=>y.sc-x.sc).slice(0,3).map(x=>x.c);
+  qt.forEach(x=>{terms.set(x,/\d/.test(x)?3:1.5);(SYN[x]||[]).forEach(y=>{if(!terms.has(stem(y)))terms.set(stem(y),.6)})});
+  const pool=kb.chunks.filter(c=>LANG==='tr'?c.lang==='tr':c.lang!=='tr');if(!pool.length)return[];
+  const docs=pool.map(c=>({c,t:toks(c.text)}));const N=docs.length,avg=docs.reduce((s,d)=>s+d.t.length,0)/N;
+  const df={};terms.forEach((w,x)=>{df[x]=docs.filter(d=>d.t.some(y=>y.startsWith(x))).length});
+  return docs.map(d=>{let sc=0;terms.forEach((w,x)=>{const f=d.t.filter(y=>y.startsWith(x)).length;if(!f)return;const idf=Math.log(1+(N-df[x]+.5)/(df[x]+.5));sc+=w*idf*f*2.2/(f+1.2*(.25+.75*d.t.length/avg))});
+    if(/(Troubleshooting guide|Sorun Giderme kılavuzu)$/.test(d.c.src))sc*=1.15;return{c:d.c,sc}}).filter(x=>x.sc>0).sort((x,y)=>y.sc-x.sc).slice(0,3).map(x=>x.c);
 }
-function hl(text,q){let h=esc(text);toks(q).filter(t=>t.length>2).forEach(t=>{h=h.replace(new RegExp('\\b('+t.replace(/[^a-z0-9]/g,'')+'[a-z]*)','gi'),'<mark>$1</mark>')});return h}
-function mdish(t){const lines=esc(t).replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').split(/\n+/);let o='',inl=false;lines.forEach(l=>{const m=l.match(/^\s*(?:[-•*]|\d+\.)\s+(.*)/);if(m){if(!inl){o+='<ul>';inl=true}o+='<li>'+m[1]+'</li>'}else{if(inl){o+='</ul>';inl=false}if(l.trim())o+='<p>'+l+'</p>'}});if(inl)o+='</ul>';return o}
-const NOTE='<p class="asknote">Still not working, or something looks unsafe? Stop using the appliance and contact property management.</p>';
+function hl(text,q){let h=esc(text);toks(q).filter(x=>x.length>2).forEach(x=>{h=h.replace(new RegExp('(?<![\\p{L}])('+x.replace(/[^\p{L}\p{N}]/gu,'')+'[\\p{L}]*)','giu'),'<mark>$1</mark>')});return h}
+function mdish(x){const lines=esc(x).replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').split(/\n+/);let o='',inl=false;lines.forEach(l=>{const m=l.match(/^\s*(?:[-•*]|\d+\.)\s+(.*)/);if(m){if(!inl){o+='<ul>';inl=true}o+='<li>'+m[1]+'</li>'}else{if(inl){o+='</ul>';inl=false}if(l.trim())o+='<p>'+l+'</p>'}});if(inl)o+='</ul>';return o}
+const NOTE=()=>`<p class="asknote">${t().note}</p>`;
 async function getKB(slug){if(!KB[slug]){const r=await fetch('/kb/'+slug+'.json');KB[slug]=await r.json()}return KB[slug]}
 app.addEventListener('submit',async e=>{const f=e.target.closest('form.ask');if(!f)return;e.preventDefault();
   const q=f.querySelector('input').value.trim(),out=f.querySelector('.askout'),slug=f.dataset.appl;if(!q)return;
-  out.innerHTML='<p>Looking in the manual&hellip;</p>';
+  out.innerHTML=`<p>${t().looking}</p>`;
   try{const ctl=new AbortController();const tm=setTimeout(()=>ctl.abort(),25000);
-    const r=await fetch('/api/ask',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({appliance:slug,question:q}),signal:ctl.signal});clearTimeout(tm);
-    if(r.ok){const j=await r.json();if(j.answer){out.innerHTML=`<div class="ans">${mdish(j.answer)}</div>${j.sources&&j.sources.length?`<span class="srcs">From: ${esc(j.sources.join(', '))}</span>`:''}${NOTE}`;return}}
+    const r=await fetch('/api/ask',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({appliance:slug,question:q,lang:LANG}),signal:ctl.signal});clearTimeout(tm);
+    if(r.ok){const j=await r.json();if(j.answer){out.innerHTML=`<div class="ans">${mdish(j.answer)}</div>${j.sources&&j.sources.length?`<span class="srcs">${t().from}: ${esc(j.sources.join(', '))}</span>`:''}${NOTE()}`;return}}
   }catch(err){}
   try{const kb=await getKB(slug);const hits=search(kb,q);
-    out.innerHTML=hits.length?`<p>Here is what the manual and guides say:</p>${hits.map(h=>`<div class="hit">${h.title?`<strong>${esc(h.title)}:</strong> `:''}${hl(h.text,q)}<small>${esc(h.src)}</small></div>`).join('')}${NOTE}`
-      :`<p>Nothing in the manual matches that. Try other words, for example "won't drain" or the code on the display.</p>${NOTE}`;
-  }catch(err){out.innerHTML='<p>Sorry, search is not available right now.</p>'+NOTE}
+    out.innerHTML=hits.length?`<p>${t().found}</p>${hits.map(h=>`<div class="hit">${h.title?`<strong>${esc(h.title)}:</strong> `:''}${hl(h.text,q)}<small>${esc(h.src)}</small></div>`).join('')}${NOTE()}`
+      :`<p>${esc(t().nothing)}</p>${NOTE()}`;
+  }catch(err){out.innerHTML=`<p>${t().unavailable}</p>`+NOTE()}
 });
-function tabUrl(a,x){return `#/${a.slug}/${x.key.slice(a.slug.length+1)}`}
-function phoneView(g){
-  const p=g.phone;
+function tabUrl(a,x){return `#/${a.slug}/${kindOf(a,x)}`}
+function phoneView(p){
   const steps=p.steps.map((st,i)=>{
     let out='',list=[];
-    const flush=()=>{if(list.length){out+='<ul>'+list.map(t=>`<li>${t}</li>`).join('')+'</ul>';list=[]}};
-    st.items.forEach(it=>{ if(it.img){flush();out+=`<figure class="fig"><button type="button" data-zoom="${it.img}" aria-label="Enlarge picture"><img src="${it.img}" width="${it.w}" height="${it.h}" loading="lazy" alt="${esc(it.cap)}"></button><figcaption>${esc(it.cap)}</figcaption></figure>`} else list.push(it.html) });
+    const flush=()=>{if(list.length){out+='<ul>'+list.map(x=>`<li>${x}</li>`).join('')+'</ul>';list=[]}};
+    st.items.forEach(it=>{ if(it.img){flush();out+=`<figure class="fig"><button type="button" data-zoom="${it.img}" aria-label="${t().enlarge}"><img src="${it.img}" width="${it.w}" height="${it.h}" loading="lazy" alt="${esc(it.cap)}"></button><figcaption>${esc(it.cap)}</figcaption></figure>`} else list.push(it.html) });
     flush();
     return `<section class="step"><h3><span class="num">${i+1}</span>${esc(st.title)}</h3>${out}</section>`;
   }).join('');
-  return `<div class="imp"><b>IMPORTANT</b>${p.important}</div>${steps}
-  <div class="gstop"><b>STOP AND CONTACT PROPERTY MANAGEMENT</b>${p.stop}</div>
+  return `<div class="imp"><b>${t().imp}</b>${p.important}</div>${steps}
+  <div class="gstop"><b>${t().stopBox}</b>${p.stop}</div>
   <p class="src">${p.footer}</p>`;
 }
 function guide(a,g){
-  document.title=`${g.label} - ${a.title}`;
+  const L=AL(a),G=GL(a,g);
+  document.title=`${G.label} - ${L.title}`;
   const i=a.guides.indexOf(g),prev=a.guides[i-1],nxt=a.guides[i+1];
-  const pages=g.pages.map((p,k)=>`<a class="page" href="${p.src}" target="_blank" rel="noopener"><img src="${p.src}" width="${p.w}" height="${p.h}" loading="lazy" alt="${esc(g.label)} guide, page ${k+1} of ${g.pages.length}"></a>`).join('');
-  const dl=`<a class="dl" href="${g.pdf}" download="${esc(a.title+' - '+g.label)}.pdf"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3v12M7 10l5 5 5-5M4 20h16"/></svg>Download PDF (${g.kb>1024?(g.kb/1024).toFixed(1)+' MB':g.kb+' KB'})</a>`;
-  app.innerHTML=`<a class="back" href="#/">&larr; ${DATA.length>1?'All appliances':'Back'}</a>
-  <h2 class="gtitle">${esc(a.title)}${g.phone?' &middot; '+esc(g.label):''}</h2>${a.sub?`<p class="gsub">${esc(a.sub)}</p>`:''}
-  <nav class="tabs">${a.guides.map(x=>`<a class="tab" href="${tabUrl(a,x)}"${x===g?' aria-current="page"':''}>${esc(x.label)}</a>`).join('')}</nav>
+  const pages=G.pages.map((p,k)=>`<a class="page" href="${p.src}" target="_blank" rel="noopener"><img src="${p.src}" width="${p.w}" height="${p.h}" loading="lazy" alt="${esc(G.label)}, ${t().page} ${k+1} ${t().of} ${G.pages.length}"></a>`).join('');
+  const dl=`<a class="dl" href="${G.pdf}" download="${esc(L.title+' - '+G.label)}.pdf"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3v12M7 10l5 5 5-5M4 20h16"/></svg>${t().dl} (${G.kb>1024?(G.kb/1024).toFixed(1)+' MB':G.kb+' KB'})</a>`;
+  app.innerHTML=`<a class="back" href="#/">&larr; ${DATA.length>1?t().all:t().back}</a>
+  <h2 class="gtitle">${esc(L.title)}${G.phone?' &middot; '+esc(G.label):''}</h2>${L.sub?`<p class="gsub">${esc(L.sub)}</p>`:''}
+  <nav class="tabs">${a.guides.map(x=>`<a class="tab" href="${tabUrl(a,x)}"${x===g?' aria-current="page"':''}>${esc(GL(a,x).label)}</a>`).join('')}</nav>
+  ${G.fb?`<p class="fallback">${t().fallback}</p>`:''}
   ${/-troubleshooting$/.test(g.key)?askBox(a):''}
-  ${g.phone?`<p class="swipe">Swipe left or right to switch guides. Tap a picture to enlarge it.</p>${phoneView(g)}
-    <div class="next">${prev?`<a href="${tabUrl(a,prev)}">&larr; ${esc(prev.label)}</a>`:''}${nxt?`<a href="${tabUrl(a,nxt)}">${esc(nxt.label)} &rarr;</a>`:''}</div>
-    ${dl}<details class="printed"><summary>See the printed version</summary>${pages}</details>`
-  :`${dl}<p class="zoom">Tap a page to open it full size and zoom in.</p>${pages}
-  <div class="stop"><strong>Still not working, or something looks unsafe?</strong>Stop using the appliance and contact property management.</div>`}`;
+  ${G.phone?`<p class="swipe">${t().swipe}</p>${phoneView(G.phone)}
+    <div class="next">${prev?`<a href="${tabUrl(a,prev)}">&larr; ${esc(GL(a,prev).label)}</a>`:''}${nxt?`<a href="${tabUrl(a,nxt)}">${esc(GL(a,nxt).label)} &rarr;</a>`:''}</div>
+    ${dl}<details class="printed"><summary>${t().printed}</summary>${pages}</details>`
+  :`${dl}<p class="zoom">${t().zoom}</p>${pages}
+  <div class="stop"><strong>${t().stopT}</strong>${t().stopB}</div>`}`;
   app.dataset.prev=prev?tabUrl(a,prev):'';app.dataset.next=nxt?tabUrl(a,nxt):'';
 }
 app.addEventListener('click',e=>{const b=e.target.closest('[data-zoom]');if(!b)return;
@@ -179,7 +221,7 @@ function route(){
   if(g)guide(a,g);else{home();app.dataset.prev=app.dataset.next='';}
   window.scrollTo(0,0);
 }
-addEventListener('hashchange',route);route();
+addEventListener('hashchange',route);chrome();route();
 </script>
 </body>
 </html>

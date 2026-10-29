@@ -18,7 +18,9 @@ export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ error: "POST only" });
   if (!process.env.ANTHROPIC_API_KEY) return res.status(501).json({ error: "not configured" });
 
-  const { appliance, question } = req.body || {};
+  const { appliance, question, lang } = req.body || {};
+  const LANGS = { tr: "Turkish" };
+  const answerIn = LANGS[lang] || "";
   if (typeof appliance !== "string" || !/^[a-z0-9-]{2,60}$/.test(appliance)) return res.status(400).json({ error: "bad appliance" });
   if (typeof question !== "string" || !question.trim() || question.length > 300) return res.status(400).json({ error: "bad question" });
 
@@ -38,7 +40,8 @@ export default async function handler(req, res) {
     return res.status(502).json({ error: "manual not available" });
   }
 
-  const excerpts = kb.chunks.map((c, i) => `[${i + 1}] (${c.src}${c.title ? ", " + c.title : ""}) ${c.text}`).join("\n\n");
+  const chunks = kb.chunks.filter((c) => !c.lang || c.lang === lang || (!answerIn && c.lang === "en"));
+  const excerpts = chunks.map((c, i) => `[${i + 1}] (${c.src}${c.title ? ", " + c.title : ""}) ${c.text}`).join("\n\n");
   const client = new Anthropic();
   try {
     const response = await client.beta.messages.create({
@@ -50,7 +53,7 @@ export default async function handler(req, res) {
       system: SYSTEM,
       messages: [{
         role: "user",
-        content: `Appliance: ${kb.appliance}\n\nExcerpts:\n${excerpts}\n\nTenant's problem: ${question.trim()}\n\nAfter your answer, on a last line write SOURCES: followed by the excerpt numbers you used, comma separated.`,
+        content: `Appliance: ${kb.appliance}\n\nExcerpts:\n${excerpts}\n\nTenant's problem: ${question.trim()}\n\nAfter your answer, on a last line write SOURCES: followed by the excerpt numbers you used, comma separated.${answerIn ? `\n\nWrite your answer in ${answerIn} (keep button and display names exactly as they appear on the appliance). Keep the SOURCES line in English.` : ""}`,
       }],
     });
     if (response.stop_reason === "refusal") return res.status(200).json({ answer: "" });
@@ -59,7 +62,7 @@ export default async function handler(req, res) {
     const m = text.match(/\n?SOURCES:\s*([\d,\s]*)$/i);
     if (m) {
       text = text.slice(0, m.index).trim();
-      const srcs = m[1].split(",").map((n) => kb.chunks[parseInt(n, 10) - 1]?.src).filter(Boolean);
+      const srcs = m[1].split(",").map((n) => chunks[parseInt(n, 10) - 1]?.src).filter(Boolean);
       sources = [...new Set(srcs)];
     }
     return res.status(200).json({ answer: text, sources });
