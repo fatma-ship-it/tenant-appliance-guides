@@ -19,8 +19,10 @@ export default async function handler(req, res) {
   if (!process.env.ANTHROPIC_API_KEY) return res.status(501).json({ error: "not configured" });
 
   const { appliance, question, lang } = req.body || {};
-  const LANGS = { tr: "Turkish" };
-  const answerIn = LANGS[lang] || "";
+  let answerIn = "";
+  if (typeof lang === "string" && /^[a-z]{2,3}(-[a-z]{2,4})?$/i.test(lang) && lang !== "en") {
+    try { const n = new Intl.DisplayNames(["en"], { type: "language" }).of(lang); if (n && n.toLowerCase() !== lang.toLowerCase()) answerIn = n; } catch {}
+  }
   if (typeof appliance !== "string" || !/^[a-z0-9-]{2,60}$/.test(appliance)) return res.status(400).json({ error: "bad appliance" });
   if (typeof question !== "string" || !question.trim() || question.length > 300) return res.status(400).json({ error: "bad question" });
 
@@ -40,7 +42,7 @@ export default async function handler(req, res) {
     return res.status(502).json({ error: "manual not available" });
   }
 
-  const chunks = kb.chunks.filter((c) => !c.lang || c.lang === lang || (!answerIn && c.lang === "en"));
+  const chunks = kb.chunks;
   const excerpts = chunks.map((c, i) => `[${i + 1}] (${c.src}${c.title ? ", " + c.title : ""}) ${c.text}`).join("\n\n");
   const client = new Anthropic();
   try {
@@ -53,7 +55,7 @@ export default async function handler(req, res) {
       system: SYSTEM,
       messages: [{
         role: "user",
-        content: `Appliance: ${kb.appliance}\n\nExcerpts:\n${excerpts}\n\nTenant's problem: ${question.trim()}\n\nAfter your answer, on a last line write SOURCES: followed by the excerpt numbers you used, comma separated.${answerIn ? `\n\nWrite your answer in ${answerIn} (keep button and display names exactly as they appear on the appliance). Keep the SOURCES line in English.` : ""}`,
+        content: `Appliance: ${kb.appliance}\n\nExcerpts:\n${excerpts}\n\nTenant's problem: ${question.trim()}\n\nAfter your answer, on a last line write SOURCES: followed by the excerpt numbers you used, comma separated.\n\n${answerIn ? `Write your answer in ${answerIn}.` : "Write your answer in the language the tenant used."} Keep button, cycle and display names in English exactly as they appear on the appliance. Keep the SOURCES line in English.`,
       }],
     });
     if (response.stop_reason === "refusal") return res.status(200).json({ answer: "" });
